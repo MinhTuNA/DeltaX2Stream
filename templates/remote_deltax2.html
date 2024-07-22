@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control DeltaX2</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .title-bar {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .title {
+            font-size: 16px;
+        }
+
+        .exit-btn {
+            background-color: #cc0000;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .exit-btn:hover {
+            background-color: #990000;
+        }
+
+        .submit-btn {
+            background-color: #007acc;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: #005f99;
+        }
+
+        .video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            margin-top: -50px;
+        }
+
+        iframe {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            width: 640px;
+            height: 480px;
+            transform: scale(0.75);
+        }
+
+        .code-wrapper {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+            padding: 20px;
+            overflow: hidden;
+            gap: 20px; /* Thêm khoảng cách giữa hai ô */
+            margin-top: -70px;
+        }
+        
+
+        .code-editor {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            padding: 20px;
+            resize: none;
+            outline: none;
+            font-size: 14px;
+            line-height: 1.5;
+            width: 100%;
+            margin-top: 10px; /* Add space between button and textarea */
+        }
+
+        .code-editor::placeholder {
+            color: #888;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .form-wrapper {
+        flex: 1; /* Chia đều không gian cho hai form */
+        display: flex;
+        flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="title-bar">
+            <div class="title">DeltaX2 robot</div>
+            <button class="exit-btn" onclick="window.location.href='/'">Exit</button>
+        </div>
+        <div class="video-container">
+            <!-- Nhúng video từ URL -->
+            <iframe src="http://192.168.1.101:8080/?action=stream" allowfullscreen></iframe>
+            <iframe src="http://192.168.1.101:8081/?action=stream" allowfullscreen></iframe>
+        </div>
+        <div class="code-wrapper">
+            <div class="form-wrapper">
+                <form id="gcode-form1">
+                    <button class="submit-btn" type="submit">Send to DeltaX2</button>
+                    <textarea class="code-editor" id="gcode-input1" name="gcode1" placeholder="Enter G-code here..."></textarea>
+                </form>
+            </div>
+            <div class="form-wrapper">
+                <form id="gcode-form2">
+                    <button class="submit-btn" type="submit">Send to Conveyor</button>
+                    <textarea class="code-editor" id="gcode-input2" name="gcode2" placeholder="Enter G-code here..."></textarea>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#gcode-form1").on("submit", function(event){
+                event.preventDefault();
+                var gcode = $("#gcode-input1").val();
+                $.ajax({
+                    url: "/remote",
+                    method: "POST",
+                    data: { gcode: gcode },
+                    success: function(response){
+                        $("#gcode-input1").val('');
+                    },
+                    error: function() {
+                        $("#gcode-input1").val('');
+                    }
+                });
+            });
+
+            $("#gcode-form2").on("submit", function(event){
+                event.preventDefault();
+                var gcode = $("#gcode-input2").val();
+                $.ajax({
+                    url: "/remote",
+                    method: "POST",
+                    data: { gcode: gcode },
+                    success: function(response){
+                        $("#gcode-input2").val('');
+                    },
+                    error: function() {
+                        $("#gcode-input2").val('');
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeltaX2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e; /* Màu nền tối giống VS Code */
+            color: #dcdcdc; /* Màu chữ sáng */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box; /* Đảm bảo padding không vượt quá chiều cao */
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px; /* Thêm padding để tránh nội dung dính vào các cạnh màn hình */
+        }
+
+        h1 {
+            color: #569cd6; /* Màu tiêu đề */
+            font-size: 24px; /* Kích thước font cho tiêu đề */
+        }
+
+        .btn-container {
+            margin: 20px 0;
+        }
+
+        .btn {
+            background-color: #007acc; /* Màu nền nút */
+            color: #ffffff; /* Màu chữ trên nút */
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: block; /* Đảm bảo nút có chiều rộng 100% */
+            width: 100%; /* Đảm bảo nút chiếm toàn bộ chiều rộng có thể có */
+            max-width: 300px; /* Đặt kích thước tối đa cho nút */
+            margin: 0 auto; /* Canh giữa nút */
+        }
+
+        .btn:hover {
+            background-color: #005f8d; /* Màu nền nút khi hover */
+        }
+
+        #statusMessage {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #ff6f6f; /* Màu thông báo */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Home</h1>
+        <div class="btn-container">
+            <button class="btn" id="ControlButton">Control DeltaX2</button>
+        </div>
+        <p id="statusMessage"></p>
+    </div>
+
+    <script>
+        document.getElementById('ControlButton').addEventListener('click', function() {
+            fetch('/check_remote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.status === 'available') {
+                      window.location.href = '/remote';
+                  } else {
+                      document.getElementById('statusMessage').textContent = 'Trang điều khiển đang được sử dụng. Vui lòng đợi.';
+                  }
+              });
+        });
+    </script>
+</body>
+</html>
