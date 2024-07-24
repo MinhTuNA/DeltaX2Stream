@@ -26,21 +26,24 @@ buferSize = 1024
 msgfromServer = "From Server to"
 bytesToSend = str.encode(msgfromServer)
 
-UDPServerSocket = socket.socket(family = socket.AF_INET, type = socket.SOCK_DGRAM)
+TCPServerSocket = socket.socket(family = socket.AF_INET, type = socket.SOCK_STREAM)
 
-UDPServerSocket.bind((ServerIP,ServerPort))
+TCPServerSocket.bind((ServerIP,ServerPort))
+TCPServerSocket.listen(5)
 
 print("Server is starting...")
 
 def ReceiveThread():
     while True:
-        ByteAddressPair = UDPServerSocket.recvfrom(buferSize)
-        Data_rec = ByteAddressPair[0].decode('utf-8')
-        address = ByteAddressPair[1]
-        print(Data_rec)
-        print(address)
-        UDPServerSocket.sendto(bytesToSend,address)
-
+        client, addr = TCPServerSocket.accept()
+        try:
+            while True:
+                Data = client.recv(buferSize)
+                Data_rec = Data.decode('utf-8')
+                print(Data_rec)
+                client.send(bytesToSend)
+        finally:
+            client.close()    
 thread = threading.Thread(target = ReceiveThread,args=())
 thread.start()
 

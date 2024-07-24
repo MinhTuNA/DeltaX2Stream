@@ -68,7 +68,7 @@
             align-items: center;
             gap: 20px;
             padding: 20px;
-            margin-top: -50px;
+            margin-top: -90px;
         }
 
         iframe {
@@ -76,7 +76,7 @@
             border-radius: 8px;
             width: 640px;
             height: 480px;
-            transform: scale(0.75);
+            transform: scale(0.65);
         }
 
         .code-wrapper {
@@ -86,7 +86,7 @@
             padding: 20px;
             overflow: hidden;
             gap: 20px; /* Thêm khoảng cách giữa hai ô */
-            margin-top: -70px;
+            margin-top: -110px;
         }
         
 
@@ -100,6 +100,7 @@
             font-size: 14px;
             line-height: 1.5;
             width: 100%;
+            height: 100%;
             margin-top: 10px; /* Add space between button and textarea */
         }
 
@@ -132,15 +133,9 @@
         </div>
         <div class="code-wrapper">
             <div class="form-wrapper">
-                <form id="gcode-form1">
-                    <button class="submit-btn" type="submit">Send to DeltaX2</button>
-                    <textarea class="code-editor" id="gcode-input1" name="gcode1" placeholder="Enter G-code here..."></textarea>
-                </form>
-            </div>
-            <div class="form-wrapper">
-                <form id="gcode-form2">
-                    <button class="submit-btn" type="submit">Send to Conveyor</button>
-                    <textarea class="code-editor" id="gcode-input2" name="gcode2" placeholder="Enter G-code here..."></textarea>
+                <form id="python-form">
+                    <button class="submit-btn" type="submit">Run</button>
+                    <textarea class="code-editor" id="python-input" name="python_code" placeholder="Enter Python code here..."></textarea>
                 </form>
             </div>
         </div>
@@ -148,34 +143,18 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function(){
-            $("#gcode-form1").on("submit", function(event){
+            $("#python-form").on("submit", function(event){
                 event.preventDefault();
-                var gcode = $("#gcode-input1").val();
+                var python_code = $("#python-input").val();
                 $.ajax({
-                    url: "/remote",
+                    url: "/run_python",
                     method: "POST",
-                    data: { gcode: gcode },
+                    data: { python_code: python_code },
                     success: function(response){
-                        $("#gcode-input1").val('');
+                        alert(response.message);
                     },
                     error: function() {
-                        $("#gcode-input1").val('');
-                    }
-                });
-            });
-
-            $("#gcode-form2").on("submit", function(event){
-                event.preventDefault();
-                var gcode = $("#gcode-input2").val();
-                $.ajax({
-                    url: "/remote",
-                    method: "POST",
-                    data: { gcode: gcode },
-                    success: function(response){
-                        $("#gcode-input2").val('');
-                    },
-                    error: function() {
-                        $("#gcode-input2").val('');
+                        alert("An error occurred while running the Python code.");
                     }
                 });
             });

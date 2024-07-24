@@ -2,20 +2,22 @@ from flask import Flask, render_template, Response, request, jsonify, redirect
 from flask_socketio import SocketIO
 import socket
 import threading
+import os
+import subprocess
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 lock = threading.Lock()
 lock_owner = None
 
-SERVER_AddressPort = ("192.168.1.101",5000)
+SERVER_HOST = '192.168.1.101'
+SERVER_PORT = 5000
 bufferSize = 1024
 
-CLIENT_IP = "192.168.1.124"
-CLIENT_PORT = 6000
 
-UDPClientSocket = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
-UDPClientSocket.bind((CLIENT_IP,CLIENT_PORT))
+TCPClientSocket = socket.socket(family=socket.AF_INET, type = socket.SOCK_STREAM)
+TCPClientSocket.connect((SERVER_HOST,SERVER_PORT))
+
 print("Client Start")
 
 @app.route("/", methods=["POST", "GET"])
@@ -32,14 +34,13 @@ def remote():
             return render_template('remote_deltax2.html')
         elif lock_owner == request.remote_addr:
             if request.method == "POST":
-                gcode_user = request.form.get("gcode")
-                if gcode_user:
-                    print(gcode_user)
-                    BytesToSend = str.encode(gcode_user)
-                    UDPClientSocket.sendto(BytesToSend,SERVER_AddressPort)
-                    return jsonify({'status': 'success', 'message': 'Gcode received and processed'})
+                python_code = request.form.get("python_code")
+                if python_code:
+                    BytesToSend = str.encode(python_code)
+                    TCPClientSocket.send(BytesToSend)
+                    return jsonify({'status': 'success', 'message': 'code received and processed'})
                 else:
-                    return jsonify({'status': 'error', 'message': 'No Gcode received'})
+                    return jsonify({'status': 'error', 'message': 'No code received'})
             return render_template('remote_deltax2.html')
         else:
             return redirect('/')
