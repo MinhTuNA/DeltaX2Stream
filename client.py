@@ -11,7 +11,7 @@ lock_owner = None
 SERVER_AddressPort = ("192.168.1.101",5000)
 bufferSize = 1024
 
-CLIENT_IP = "192.168.1.126"
+CLIENT_IP = "192.168.1.124"
 CLIENT_PORT = 6000
 
 UDPClientSocket = socket.socket(family=socket.AF_INET, type = socket.SOCK_DGRAM)
