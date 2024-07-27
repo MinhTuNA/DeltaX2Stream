@@ -10,7 +10,7 @@ socketio = SocketIO(app)
 lock = threading.Lock()
 lock_owner = None
 
-SERVER_HOST = '192.168.1.126' # ip server
+SERVER_HOST = "192.168.1.101" # ip server
 SERVER_PORT = 5000 # port server
 bufferSize = 1024 # kích thước tối đa dữ liệu truyền nhận
 
@@ -48,16 +48,20 @@ def remote():
 # route xử lý file script tải lên        
 @app.route('/upload', methods=['POST']) 
 def upload():
-    file = request.files.get('file') # nhận file từ name: file trong form html
-    if file and file.filename.endswith('.py'): # kiểm tra file hợp lệ
-        filepath = os.path.join('/tmp', file.filename) # lưu tạm file vào thư mục tmp
+    file = request.files.get('file')
+    if file and file.filename.endswith('.py'):
+        filepath = os.path.join('/tmp', file.filename)
         file.save(filepath)
 
         with open(filepath, 'rb') as f:
-            while chunk := f.read(bufferSize): # đọc file và gửi tới server
+            while True:
+                chunk = f.read(bufferSize)
+                if not chunk:
+                    break
                 TCPClientSocket.sendall(chunk)
         return jsonify({'message': 'File đã được gửi tới server'}), 200
     return jsonify({'message': 'Vui lòng upload file python'}), 400
+
     
 # route kiểm tra trạng thái truy cập
 @app.route('/check_remote', methods=['POST'])
@@ -85,5 +89,4 @@ def handle_disconnect():
             print("Lock released due to client disconnect")
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000,debug=True)
-
+    socketio.run(app, host='0.0.0.0', port=5001,debug=True)

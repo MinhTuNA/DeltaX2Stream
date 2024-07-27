@@ -1,0 +1,78 @@
+{
+    "DeltaX2Lib": {
+        
+        "classes": {
+            "DeltaX2Lib":
+            [
+                "ArcMove",
+                "BezierSpline",
+                "Delay",
+                "DisableSteppers",
+                "GetCurrentPosition",
+                "Home",
+                "MoveTo",
+                "OutputOff",
+                "OutputOn",
+                "ReportTemp",
+                "ResetSettings",
+                "RestoreSettings",
+                "SaveSettings",
+                "SelectEndEffector",
+                "SelectLinkedDevice",
+                "SetAbsoluteMode",
+                "SetAcceleration",
+                "SetArcSegmentLength",
+                "SetAxisOffset",
+                "SetBeginEndVelocity",
+                "SetF",
+                "SetHotendTemperature",
+                "SetInterpolatedLineLength",
+                "SetRelativeMode",
+                "SetSpeed",
+                "SetZMaxPosition",
+                "ThetaControl",
+                "WaitTemp",
+                "__init__",
+                "execute_command",
+                "print_commands"
+            ],
+            "Deltax2Cmd": [
+                "ArcMove",
+                "BezierSpline",
+                "Delay",
+                "DisableSteppers",
+                "GetCurrentPosition",
+                "Home",
+                "MoveTo",
+                "OutputOff",
+                "OutputOn",
+                "ReportTemp",
+                "ResetSettings",
+                "RestoreSettings",
+                "SaveSettings",
+                "SelectEndEffector",
+                "SelectLinkedDevice",
+                "SetAbsoluteMode",
+                "SetAcceleration",
+                "SetArcSegmentLength",
+                "SetAxisOffset",
+                "SetBeginEndVelocity",
+                "SetF",
+                "SetHotendTemperature",
+                "SetInterpolatedLineLength",
+                "SetRelativeMode",
+                "SetSpeed",
+                "SetZMaxPosition",
+                "ThetaControl",
+                "WaitTemp",
+                "__init__",
+                "execute_command",
+                "print_commands"
+            ],
+            "GCodeCommand": [
+                "__init__",
+                "__str__"
+            ]
+        }
+    }
+}
