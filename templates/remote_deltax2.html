@@ -44,12 +44,8 @@
                     url: "/remote",
                     method: "POST",
                     data: { python_code: python_code },
-                    success: function(response){
-                        alert(response.message);
-                    },
-                    error: function() {
-                        alert("Xảy ra lỗi khi chạy chương trình");
-                    }
+                    
+                    
                 });
             });
             $("#upload-form").on("submit", function(event){
@@ -61,12 +57,6 @@
                     data: formData,
                     processData: false,
                     contentType: false,
-                    success: function(response){
-                        alert(response.message);
-                    },
-                    error: function() {
-                        alert("Xảy ra lỗi trong quá trình upload file.");
-                    }
                 });
             });
         });

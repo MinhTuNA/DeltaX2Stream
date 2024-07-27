@@ -38,10 +38,6 @@ def remote():
                 if python_code:
                     BytesToSend = str.encode(python_code) # mã hóa dữ liệu
                     TCPClientSocket.send(BytesToSend) # gửi dữ liệu tới server
-                    return jsonify({'status': 'success', 'message': 'đã nhận code và gửi tới server'})
-                else:
-                    return jsonify({'status': 'error', 'message': 'lỗi'})
-            return render_template('remote_deltax2.html')
         else:
             return redirect('/')
         
@@ -59,8 +55,6 @@ def upload():
                 if not chunk:
                     break
                 TCPClientSocket.sendall(chunk)
-        return jsonify({'message': 'File đã được gửi tới server'}), 200
-    return jsonify({'message': 'Vui lòng upload file python'}), 400
 
     
 # route kiểm tra trạng thái truy cập

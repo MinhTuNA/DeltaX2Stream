@@ -1,4 +1,4 @@
-# import serial
+import serial
 import time
 
 class GCodeCommand:
@@ -111,18 +111,18 @@ class Deltax2Cmd:
         Khởi tạo đối tượng Deltax2Cmd với các thuộc tính mặc định.
         Khởi tạo UART0
         """
-        # try:
-        #     self.ser = serial.Serial(
-        #         port='/dev/ttyS0', 
-        #         baudrate=115200,
-        #         parity=serial.PARITY_NONE,
-        #         stopbits=serial.STOPBITS_ONE,
-        #         bytesize=serial.EIGHTBITS,
-        #         timeout=1
-        #     )
-        # except serial.SerialException as e:
-        #     print(f"Error initializing serial port: {e}")
-        #     exit()
+        try:
+            self.ser = serial.Serial(
+                port='/dev/ttyS0', 
+                baudrate=115200,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1
+            )
+        except serial.SerialException as e:
+            print(f"Error initializing serial port: {e}")
+            exit()
         
         self.command_history = []
 
@@ -132,23 +132,24 @@ class Deltax2Cmd:
         gửi lệnh ra uart
         """
         cmd = str(command) + "\n"
-        # self.ser.write(cmd.encode('utf-8'))
-        # self.ser.flush()
+        self.ser.write(cmd.encode('utf-8'))
+        self.ser.flush()
         print(f"Sent: {cmd.strip()}")
         # nếu là các lệnh di chuyển không cần đợi phản hồi từ DeltaX2
-        # if command.command_type in ["G01", "G02", "G03","G04", "G05", "G06"]: 
-            # self.command_history.append(str(command))
-            # return
+        if command.command_type in ["G01", "G02", "G03","G04", "G05", "G06"]: 
+            self.command_history.append(str(command))
+            time.sleep(0.7)
+            return
         # đợi DeltaX2 phản hồi
-        # wait = 1
-        # while wait<=10:
-        #     received_data = self.ser.readline().decode('utf-8')
-        #     wait+=1
-        #     time.sleep(0.1)
-        #     if received_data:
-        #         print(received_data)
-        #         received_data = ""
-        #         break
+        wait = 1
+        while wait<=10:
+            received_data = self.ser.readline().decode('utf-8')
+            wait+=1
+            time.sleep(0.1)
+            if received_data:
+                print(received_data)
+                received_data = ""
+                break
         self.command_history.append(str(command))
         
         
