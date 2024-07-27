@@ -1,25 +1,11 @@
 import socket
-# import serial
 import threading
 from time import sleep
-
-# Thiết lập kết nối serial
-# try:
-#     ser = serial.Serial(
-#         port='/dev/ttyS0',  # Thay đổi thành cổng serial của bạn nếu khác
-#         baudrate=115200,
-#         parity=serial.PARITY_NONE,
-#         stopbits=serial.STOPBITS_ONE,
-#         bytesize=serial.EIGHTBITS,
-#         timeout=1
-#     )
-# except serial.SerialException as e:
-#     print(f"Error: {e}")
-#     exit()
-
+import os
+import subprocess
 
 # Thiết lập socket server
-ServerIP = "192.168.1.126"
+ServerIP = '192.168.1.126'
 ServerPort = 5000
 buferSize = 1024
 
@@ -36,16 +22,21 @@ print("Server is starting...")
 def ReceiveThread():
     while True:
         client, addr = TCPServerSocket.accept()
-        try:
-            while True:
-                Data = client.recv(buferSize)
-                Data_rec = Data.decode('utf-8')
-                print(Data_rec)
-                client.send(bytesToSend)
-        finally:
-            client.close()    
+        while True:
+            Data = client.recv(buferSize)
+            Data_recv = Data.decode('utf-8')
+            if Data_recv:
+                filepath = os.path.join("/home/deltax/DeltaX2Stream", "script.py")
+                with open(filepath, "w") as file:
+                    file.write(Data_recv)
+                try:
+                    result = subprocess.run(["python3", filepath], capture_output=True, text=True)
+                    print("Script Output:")
+                    print(result.stdout)
+                    if result.stderr:
+                        print("Script Error:")
+                        print(result.stderr)
+                except Exception as e:
+                    print(f"Error executing script: {e}")
 thread = threading.Thread(target = ReceiveThread,args=())
 thread.start()
-
-while True:
-    sleep(1)

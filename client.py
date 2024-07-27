@@ -10,7 +10,7 @@ socketio = SocketIO(app)
 lock = threading.Lock()
 lock_owner = None
 
-SERVER_HOST = '192.168.1.101'
+SERVER_HOST = '192.168.1.126'
 SERVER_PORT = 5000
 bufferSize = 1024
 
@@ -45,6 +45,19 @@ def remote():
         else:
             return redirect('/')
         
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files.get('file')
+    if file and file.filename.endswith('.py'):
+        filepath = os.path.join('/tmp', file.filename)
+        file.save(filepath)
+
+        with open(filepath, 'rb') as f:
+            while chunk := f.read(bufferSize):
+                TCPClientSocket.sendall(chunk)
+        return jsonify({'message': 'File đã được gửi tới server'}), 200
+    return jsonify({'message': 'Vui lòng upload file python'}), 400
+    
 
 @app.route('/check_remote', methods=['POST'])
 def check_remote():
@@ -54,7 +67,7 @@ def check_remote():
             return jsonify({'status': 'available'})
         else:
             return jsonify({'status': 'occupied'})
-
+    
 @socketio.on('connect')
 def handle_connect():
     print(f"Client connected: {request.remote_addr}")
@@ -69,5 +82,5 @@ def handle_disconnect():
             print("Lock released due to client disconnect")
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000,debug=True)
 
