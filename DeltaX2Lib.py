@@ -2,7 +2,7 @@
 import time
 
 class GCodeCommand:
-    def __init__(self, command_type, F=None, X=None, Y=None, Z=None, W=None, I=None, J=None, P=None, S=None, A=None, E = None, R = None):
+    def __init__(self, command_type, F=None, X=None, Y=None, Z=None, W=None, I=None, J=None, P=None, Q = None, S=None, A=None, E = None, R = None):
         """
         Khởi tạo đối tượng GCodeCommand với các tham số tùy chọn cho các lệnh GCode.
 
@@ -23,12 +23,12 @@ class GCodeCommand:
         """
         # Kiểm tra loại lệnh có hợp lệ không
         valid_commands = {
-            "G00": ["F", "X", "Y", "Z", "W"],
-            "G01": ["F", "X", "Y", "Z", "W"],
-            "G02": ["F", "X", "Y", "W", "I", "J"],
-            "G03": ["F", "X", "Y", "W", "I", "J"],
+            "G00": ["F"],
+            "G01": ["X", "Y", "Z"],
+            "G02": ["X", "Y", "I", "J"],
+            "G03": ["X", "Y", "I", "J"],
             "G04": ["P"],
-            "G05": ["F", "I", "J", "P", "Q", "X", "Y"],
+            "G05": ["I", "J", "P", "Q", "X", "Y"],
             "G06": ["X", "Y", "Z", "P"],
             "G28": [],
             "G90": [],
@@ -67,7 +67,8 @@ class GCodeCommand:
         self.S = S
         self.A = A
         self.E = E
-        self.R = R  
+        self.R = R
+        self.Q = Q  
 
     def __str__(self):
         """
@@ -76,7 +77,7 @@ class GCodeCommand:
         :return: Chuỗi lệnh GCode.
         """
         command = f"{self.command_type}"
-        if self.F is not None and self.command_type not in ["G04", "M104", "M105", "M109", "M203", "M204"]:
+        if self.F is not None:
             command += f" F{self.F}"
         if self.X is not None:
             command += f" X{self.X}"
@@ -100,6 +101,8 @@ class GCodeCommand:
             command += f" E{self.E}"
         if self.R is not None:
             command += f" R{self.R}"
+        if self.Q is not None:
+            command += f" Q{self.Q}"
         return command
 
 class Deltax2Cmd:
@@ -121,7 +124,6 @@ class Deltax2Cmd:
         #     print(f"Error initializing serial port: {e}")
         #     exit()
         
-        self.current_feedrate = None
         self.command_history = []
 
     def execute_command(self, command):
@@ -150,21 +152,25 @@ class Deltax2Cmd:
         self.command_history.append(str(command))
         
         
-    def MoveTo(self, X=None, Y=None, Z=None, W=None, F=None):
+    def MoveTo(self, X=None, Y=None, Z=None):
         """
         Thực hiện di chuyển (G01) đến tọa độ chỉ định với tốc độ tùy chọn.
 
         :param X: Tọa độ X.
         :param Y: Tọa độ Y.
         :param Z: Tọa độ Z.
-        :param W: Tọa độ trên trục 4.
-        :param F: Tốc độ di chuyển.
         """
-        command = GCodeCommand("G01", F, X, Y, Z, W)
+        command = GCodeCommand("G01", X=X, Y=Y, Z=Z)
         self.execute_command(command)
 
+    def SetSpeed(self,F = None):
+        """
+        :param F: Thiết lập tốc độ di chuyển
+        """
+        command = GCodeCommand("G00",F = F)
+        self.execute_command(command)
 
-    def ArcMove(self, command_type, X=None, Y=None, W=None, I=None, J=None, F=None):
+    def ArcMove(self, command_type, X=None, Y=None, W=None, I=None, J=None):
         """
         Thực hiện di chuyển cung tròn (G02 hoặc G03) đến tọa độ chỉ định với các tham số tùy chọn.
 
@@ -180,9 +186,9 @@ class Deltax2Cmd:
         if command_type not in [1, 0]:
             raise ValueError("Invalid command type for arc move. Use 1 for CW or 0 for CCW.")
         elif command_type == 1:
-            command = GCodeCommand("G02", F, X, Y, W, I, J)
+            command = GCodeCommand("G02", X = X, Y = Y, I = I, J = J)
         elif command_type == 0:
-            command = GCodeCommand("G03", F, X, Y, W, I, J)
+            command = GCodeCommand("G03", X = X, Y = Y, I = I, J = J)
         self.execute_command(command)
 
     def Delay(self, time):
@@ -194,7 +200,7 @@ class Deltax2Cmd:
         command = GCodeCommand("G04", P=time)
         self.execute_command(command)
 
-    def BezierSpline(self, I=None, J=None, P=None, Q=None, X=None, Y=None, F=None):
+    def BezierSpline(self, I=None, J=None, P=None, Q=None, X=None, Y=None):
         """
         Thực hiện lệnh Bezier cubic spline (G05) đến tọa độ chỉ định với các tham số tùy chọn.
 
@@ -206,7 +212,7 @@ class Deltax2Cmd:
         :param Y: Tọa độ Y.
         :param F: Tốc độ di chuyển.
         """
-        command = GCodeCommand("G05", F, I, J, P, Q, X, Y)
+        command = GCodeCommand("G05", I = I, J = J, P = P, Q = Q, X = X, Y = Y)
         self.execute_command(command)
 
     def ThetaControl(self, X=None, Y=None, Z=None, P=None):

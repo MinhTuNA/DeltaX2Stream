@@ -10,13 +10,13 @@ socketio = SocketIO(app)
 lock = threading.Lock()
 lock_owner = None
 
-SERVER_HOST = '192.168.1.126'
-SERVER_PORT = 5000
-bufferSize = 1024
+SERVER_HOST = '192.168.1.126' # ip server
+SERVER_PORT = 5000 # port server
+bufferSize = 1024 # kích thước tối đa dữ liệu truyền nhận
 
 
 TCPClientSocket = socket.socket(family=socket.AF_INET, type = socket.SOCK_STREAM)
-TCPClientSocket.connect((SERVER_HOST,SERVER_PORT))
+TCPClientSocket.connect((SERVER_HOST,SERVER_PORT)) # kết nối tới server
 
 print("Client Start")
 
@@ -24,7 +24,7 @@ print("Client Start")
 def home():
     return render_template("home.html")
 
-
+# route xử lý code python trên web
 @app.route("/remote", methods=["POST", "GET"])
 def remote():
     global lock_owner
@@ -34,31 +34,32 @@ def remote():
             return render_template('remote_deltax2.html')
         elif lock_owner == request.remote_addr:
             if request.method == "POST":
-                python_code = request.form.get("python_code")
+                python_code = request.form.get("python_code") # nhận dữ liệu từ name: python_code trong form html
                 if python_code:
-                    BytesToSend = str.encode(python_code)
-                    TCPClientSocket.send(BytesToSend)
-                    return jsonify({'status': 'success', 'message': 'code received and processed'})
+                    BytesToSend = str.encode(python_code) # mã hóa dữ liệu
+                    TCPClientSocket.send(BytesToSend) # gửi dữ liệu tới server
+                    return jsonify({'status': 'success', 'message': 'đã nhận code và gửi tới server'})
                 else:
-                    return jsonify({'status': 'error', 'message': 'No code received'})
+                    return jsonify({'status': 'error', 'message': 'lỗi'})
             return render_template('remote_deltax2.html')
         else:
             return redirect('/')
         
-@app.route('/upload', methods=['POST'])
+# route xử lý file script tải lên        
+@app.route('/upload', methods=['POST']) 
 def upload():
-    file = request.files.get('file')
-    if file and file.filename.endswith('.py'):
-        filepath = os.path.join('/tmp', file.filename)
+    file = request.files.get('file') # nhận file từ name: file trong form html
+    if file and file.filename.endswith('.py'): # kiểm tra file hợp lệ
+        filepath = os.path.join('/tmp', file.filename) # lưu tạm file vào thư mục tmp
         file.save(filepath)
 
         with open(filepath, 'rb') as f:
-            while chunk := f.read(bufferSize):
+            while chunk := f.read(bufferSize): # đọc file và gửi tới server
                 TCPClientSocket.sendall(chunk)
         return jsonify({'message': 'File đã được gửi tới server'}), 200
     return jsonify({'message': 'Vui lòng upload file python'}), 400
     
-
+# route kiểm tra trạng thái truy cập
 @app.route('/check_remote', methods=['POST'])
 def check_remote():
     global lock_owner
@@ -67,11 +68,13 @@ def check_remote():
             return jsonify({'status': 'available'})
         else:
             return jsonify({'status': 'occupied'})
-    
+
+# hiện địa chỉ ip khi có truy cập    
 @socketio.on('connect')
 def handle_connect():
     print(f"Client connected: {request.remote_addr}")
 
+# khi ngắt kết nối giải phóng, cho phép người khác truy cập
 @socketio.on('disconnect')
 def handle_disconnect():
     global lock_owner
