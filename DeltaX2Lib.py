@@ -1,4 +1,4 @@
-import serial
+# import serial
 import time
 
 class GCodeCommand:
@@ -111,18 +111,18 @@ class Deltax2Cmd:
         Khởi tạo đối tượng Deltax2Cmd với các thuộc tính mặc định.
         Khởi tạo UART0
         """
-        try:
-            self.ser = serial.Serial(
-                port='/dev/ttyS0', 
-                baudrate=115200,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.EIGHTBITS,
-                timeout=1
-            )
-        except serial.SerialException as e:
-            print(f"Error initializing serial port: {e}")
-            exit()
+        # try:
+        #     self.ser = serial.Serial(
+        #         port='/dev/ttyS0', 
+        #         baudrate=115200,
+        #         parity=serial.PARITY_NONE,
+        #         stopbits=serial.STOPBITS_ONE,
+        #         bytesize=serial.EIGHTBITS,
+        #         timeout=1
+        #     )
+        # except serial.SerialException as e:
+        #     print(f"Error initializing serial port: {e}")
+        #     exit()
         
         self.command_history = []
 
@@ -132,8 +132,8 @@ class Deltax2Cmd:
         gửi lệnh ra uart
         """
         cmd = str(command) + "\n"
-        self.ser.write(cmd.encode('utf-8'))
-        self.ser.flush()
+        # self.ser.write(cmd.encode('utf-8'))
+        # self.ser.flush()
         print(f"Sent: {cmd.strip()}")
         # nếu là các lệnh di chuyển không cần đợi phản hồi từ DeltaX2
         if command.command_type in ["G01", "G02", "G03","G04", "G05", "G06"]: 
@@ -141,15 +141,15 @@ class Deltax2Cmd:
             time.sleep(0.7) # đợi 1 lúc để deltaX2 thực hiện lệnh
             return
         # đợi DeltaX2 phản hồi
-        wait = 1
-        while wait<=10:
-            received_data = self.ser.readline().decode('utf-8')
-            wait+=1
-            time.sleep(0.1)
-            if received_data:
-                print(received_data)
-                received_data = ""
-                break
+        # wait = 1
+        # while wait<=10:
+        #     received_data = self.ser.readline().decode('utf-8')
+        #     wait+=1
+        #     time.sleep(0.1)
+        #     if received_data:
+        #         print(received_data)
+        #         received_data = ""
+        #         break
         self.command_history.append(str(command))
         
         
@@ -171,7 +171,7 @@ class Deltax2Cmd:
         command = GCodeCommand("G00",F = F)
         self.execute_command(command)
 
-    def ArcMove(self, command_type, X=None, Y=None, W=None, I=None, J=None):
+    def ArcMove(self, command_type, X=None, Y=None, I=None, J=None):
         """
         Thực hiện di chuyển cung tròn (G02 hoặc G03) đến tọa độ chỉ định với các tham số tùy chọn.
 
@@ -218,45 +218,52 @@ class Deltax2Cmd:
 
     def ThetaControl(self, X=None, Y=None, Z=None, P=None):
         """
-        Thực hiện điều khiển góc theta (G06) để thiết lập các góc và khoảng cách đã di chuyển.
+        Thực hiện điều khiển góc theta (G06) để thiết lập các góc và khoảng cách di chuyển.
 
-        :param X: Tọa độ X.
-        :param Y: Tọa độ Y.
-        :param Z: Tọa độ Z.
-        :param P: Tham số P.
+        :param X: góc của khớp Theta 1.
+        :param Y: góc của khớp Theta 2.
+        :param Z: góc của khớp Theta 3.
+        :param P: khoảng cách di chuyển, đơn vị mm.
         """
         command = GCodeCommand("G06", X=X, Y=Y, Z=Z, P=P)
         self.execute_command(command)
 
     def Home(self):
         """
-        Thực hiện lệnh tự động về gốc (G28) cho tất cả các trục.
+        Thực hiện lệnh tự động về home (G28) cho tất cả các trục.
         """
         command = GCodeCommand("G28")
         self.execute_command(command)
 
-    def SetAbsoluteMode(self):
+    def SetAbsolute(self):
         """
         Đặt chế độ di chuyển thành chế độ tuyệt đối (G90).
         """
         command = GCodeCommand("G90")
         self.execute_command(command)
 
-    def SetRelativeMode(self):
+    def SetRelative(self):
         """
         Đặt chế độ di chuyển thành chế độ tương đối (G91).
         """
         command = GCodeCommand("G91")
         self.execute_command(command)
 
-    def GetCurrentPosition(self):
+    def GetP(self):
         """
         Thực hiện lệnh để lấy vị trí hiện tại (G93).
         """
         command = GCodeCommand("G93")
         self.execute_command(command)
-        # Trong ứng dụng thực tế, bạn sẽ xử lý phản hồi ở đây
-        # Ví dụ: return actual_feedback_function()
+        received_data = ""
+        wait = 1
+        while wait<=10:
+            received_data = self.ser.readline().decode('utf-8')
+            wait+=1
+            time.sleep(0.1)
+            if received_data:
+                print(received_data)
+                return received_data
 
     def OutputOn(self, S=None):
         """
@@ -273,14 +280,14 @@ class Deltax2Cmd:
         command = GCodeCommand("M05")
         self.execute_command(command)
         
-    def DisableSteppers(self):
+    def OffSteppers(self):
         """
         Tắt động cơ bước sử dụng M84.
         """
         command = GCodeCommand("M84")
         self.execute_command(command)
 
-    def SetHotendTemperature(self, temp):
+    def SetTemp(self, temp):
         """
         Đặt nhiệt độ đầu nóng sử dụng M104.
         :param temp: Nhiệt độ đầu nóng.
@@ -294,7 +301,16 @@ class Deltax2Cmd:
         """
         command = GCodeCommand("M105")
         self.execute_command(command)
-        #return something
+
+        received_data = ""
+        wait = 1
+        while wait<=10:
+            received_data = self.ser.readline().decode('utf-8')
+            wait+=1
+            time.sleep(0.1)
+            if received_data:
+                print(received_data)
+                return received_data
 
     def WaitTemp(self, temp):
         """
@@ -330,7 +346,7 @@ class Deltax2Cmd:
         command = GCodeCommand("M206", X=X, Y=Y, Z=Z)
         self.execute_command(command)
 
-    def SelectLinkedDevice(self, R):
+    def SelectDevice(self, R):
         """M331 chọn thiết bị được liên kết .
         0 - không có, vô hiệu hóa cổng
         1 - băng tải
@@ -341,7 +357,7 @@ class Deltax2Cmd:
         command = GCodeCommand("M331", R=R)
         self.execute_command(command)
 
-    def SelectEndEffector(self, value):
+    def SelectEffector(self, value):
         """M360 chọn bộ phận cuối cho robot .
         0-chân không (mặc định)
         1-kẹp
@@ -365,7 +381,7 @@ class Deltax2Cmd:
         command = GCodeCommand("M362", P=length)
         self.execute_command(command)
 
-    def SetZMaxPosition(self, position):
+    def SetZMax(self, position):
         """Thiết lập vị trí Z tối đa dùng lệnh M402."""
         command = GCodeCommand("M402", Z=position)
         self.execute_command(command)

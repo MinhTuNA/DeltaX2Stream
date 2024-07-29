@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, request, jsonify, redirect,flash
+from flask import Flask, render_template, Response, request, jsonify, redirect,send_from_directory
 from flask_socketio import SocketIO
 import socket
 import threading
@@ -72,6 +72,10 @@ def check_remote():
             return jsonify({'status': 'available'})
         else:
             return jsonify({'status': 'occupied'})
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
 
 # hiện địa chỉ ip khi có truy cập    
 @socketio.on('connect')
