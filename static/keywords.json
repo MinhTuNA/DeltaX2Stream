@@ -1,9 +1,9 @@
 {
     "DeltaX2Lib": {
-        
         "classes": {
-            "DeltaX2Lib":
-            [
+            "DeltaX2Lib": [
+                "DeltaX2Lib",
+                "Deltax2Cmd",
                 "ArcMove",
                 "BezierSpline",
                 "Delay",
