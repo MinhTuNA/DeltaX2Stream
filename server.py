@@ -21,10 +21,9 @@ def handle_client(client_socket):
     try:
         while True:
             Data = client_socket.recv(bufferSize)
-            if not Data:
-                break  # Ngắt kết nối nếu không còn dữ liệu
             Data_recv = Data.decode('utf-8')
             if Data_recv:
+                print(Data_recv)
                 filepath = os.path.join("/home/deltax/DeltaX2Stream", "script.py")
                 with open(filepath, "w") as file:
                     file.write(Data_recv)

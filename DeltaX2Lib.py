@@ -138,7 +138,7 @@ class Deltax2Cmd:
         # nếu là các lệnh di chuyển không cần đợi phản hồi từ DeltaX2
         if command.command_type in ["G01", "G02", "G03","G04", "G05", "G06"]: 
             self.command_history.append(str(command))
-            time.sleep(0.7)
+            time.sleep(0.7) # đợi 1 lúc để deltaX2 thực hiện lệnh
             return
         # đợi DeltaX2 phản hồi
         wait = 1

@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control DeltaX2</title>
     <link rel="stylesheet" href="{{url_for('static',filename='styles/style.css')}}">
-    
+    <!-- <link rel="stylesheet" href="../static/styles/style.css"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+
 </head>
 <body>
     <div class="upload-wrapper">
@@ -26,6 +30,7 @@
         </div>
         <div class="code-wrapper">
             <div class="form-wrapper">
+                <div id="notification" style="color: green; font-weight: bold;"></div> <!-- Thêm phần tử thông báo -->
                 <form id="python-form">
                     <button class="submit-btn" type="submit">Run</button>
                     <textarea class="code-editor" id="python-input" name="python_code" placeholder="Enter Python code here..."></textarea>
@@ -34,18 +39,38 @@
         </div>
         
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/anyword-hint.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        
         $(document).ready(function(){
+            const textarea = document.getElementById('python-input');
+                const editor = CodeMirror.fromTextArea(textarea, {
+                    mode: 'python',
+                    lineNumbers: true,
+                    theme: 'dracula',
+                    extraKeys: { "Ctrl-Space": "autocomplete" }
+                });
+
             $("#python-form").on("submit", function(event){
                 event.preventDefault();
-                var python_code = $("#python-input").val();
+                var python_code = editor.getValue();
                 $.ajax({
                     url: "/remote",
                     method: "POST",
-                    data: { python_code: python_code },
-                    
-                    
+                    contentType: "application/json",  // Đặt Content-Type là application/json
+                    data: JSON.stringify({ python_code: python_code }),  // Gửi dữ liệu dưới dạng JSON
+                    success: function(response) {
+                    // Hiển thị thông báo thành công
+                    $("#notification").text("Code đã được nạp thành công!");
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                    // Hiển thị thông báo lỗi nếu có
+                    $("#notification").text("Đã xảy ra lỗi khi nạp code.");
+                    }
                 });
             });
             $("#upload-form").on("submit", function(event){
@@ -57,9 +82,64 @@
                     data: formData,
                     processData: false,
                     contentType: false,
+                    success: function(response) {
+                        $("#notification").text("Upload script thành công!");
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $("#notification").text("Đã xảy ra lỗi khi upload script.");
+                    }
                 });
             });
         });
+        fetch('/static/keywords.json')
+            .then(response => response.json())
+            .then(data => {
+                const customKeywords = Object.values(data.DeltaX2Lib.classes).flat();
+
+                // Custom hint function
+                function customHint(editor, options) {
+                    const cursor = editor.getCursor();
+                    const token = editor.getTokenAt(cursor);
+                    const start = token.start;
+                    const end = cursor.ch;
+                    const currentWord = token.string;
+
+                    const list = customKeywords.filter(function(item) {
+                        return item.startsWith(currentWord);
+                    });
+
+                    return {
+                        list: list,
+                        from: CodeMirror.Pos(cursor.line, start),
+                        to: CodeMirror.Pos(cursor.line, end)
+                    };
+                }
+
+                // Create the CodeMirror editor
+                
+
+                // Function to trigger autocomplete
+                function autoComplete(cm) {
+                    CodeMirror.showHint(cm, customHint, { completeSingle: false });
+                }
+
+                // Add an event listener to trigger autocomplete on any input event
+                editor.on('inputRead', function(cm, event) {
+                    if (!cm.state.completionActive) { // If completion is not active
+                        autoComplete(cm);
+                    }
+                });
+
+                // Handle form submission
+                const form = document.getElementById('python-form');
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const code = editor.getValue();
+                    console.log('Submitted code:', code);
+                    // Add your code execution logic here
+                });
+            })
+            .catch(error => console.error('Error loading keywords:', error));
     </script>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
@@ -71,7 +151,6 @@
 
         socket.on('disconnect', function() {
             console.log('Disconnected from server');
-            window.location.href = '/';
         });
     </script>
 </body>

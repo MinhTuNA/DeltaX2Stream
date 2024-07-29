@@ -1,11 +1,11 @@
-from flask import Flask, render_template, Response, request, jsonify, redirect
+from flask import Flask, render_template, Response, request, jsonify, redirect,flash
 from flask_socketio import SocketIO
 import socket
 import threading
 import os
-import subprocess
 
 app = Flask(__name__)
+app.secret_key = 'lkajduiydusww'
 socketio = SocketIO(app)
 lock = threading.Lock()
 lock_owner = None
@@ -28,19 +28,25 @@ def home():
 @app.route("/remote", methods=["POST", "GET"])
 def remote():
     global lock_owner
+    if request.method == "POST":
+        data = request.get_json()  # Nhận dữ liệu từ name: python_code trong form HTML
+        python_code = data.get("python_code")
+        if python_code:
+            print(python_code)
+            BytesToSend = str.encode(python_code)  # Mã hóa dữ liệu
+            TCPClientSocket.send(BytesToSend)  # Gửi dữ liệu tới server
+            return render_template('remote_deltax2.html')
+        else:
+            return render_template('remote_deltax2.html')
+
     with lock:
         if lock_owner is None:
             lock_owner = request.remote_addr
             return render_template('remote_deltax2.html')
         elif lock_owner == request.remote_addr:
-            if request.method == "POST":
-                python_code = request.form.get("python_code") # nhận dữ liệu từ name: python_code trong form html
-                if python_code:
-                    BytesToSend = str.encode(python_code) # mã hóa dữ liệu
-                    TCPClientSocket.send(BytesToSend) # gửi dữ liệu tới server
+            return render_template('remote_deltax2.html')
         else:
             return redirect('/')
-        
 # route xử lý file script tải lên        
 @app.route('/upload', methods=['POST']) 
 def upload():
@@ -55,7 +61,7 @@ def upload():
                 if not chunk:
                     break
                 TCPClientSocket.sendall(chunk)
-
+    return render_template('remote_deltax2.html')
     
 # route kiểm tra trạng thái truy cập
 @app.route('/check_remote', methods=['POST'])
@@ -83,4 +89,4 @@ def handle_disconnect():
             print("Lock released due to client disconnect")
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5001,debug=True)
+    socketio.run(app, host='0.0.0.0', port=5001)
