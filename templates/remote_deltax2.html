@@ -10,17 +10,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
 </head>
 <body>
-    
-    <div class="editor-container">
+    <div class="container">
         <div class="title-bar">
-            <div class="title">DeltaX2 robot</div>
-            <div >
+            <div class="title">DeltaX2 Robot Control</div>
+            <div class="upload-exit">
                 <form id="upload-form" method="POST" enctype="multipart/form-data">
                     <input type="file" name="file">
-                    <button type="submit">Upload script</button>
+                    <button type="submit">Upload Script</button>
                 </form>
+                <button class="exit-btn" onclick="window.location.href='/'">Exit</button>
             </div>
-            <button class="exit-btn" onclick="window.location.href='/'">Exit</button>
         </div>
         <div class="video-container">
             <iframe src="http://117.3.0.23:8033/?action=stream" allowfullscreen></iframe>
@@ -28,7 +27,8 @@
         </div>
         <div class="code-wrapper">
             <div class="form-wrapper">
-                <div id="notification" style="color: green; font-weight: bold;"></div>
+                <div id="notification" class="notification"></div>
+                <div id="user_name" ><p>Chào, {{ user }}!</p></div>
                 <form id="python-form">
                     <button class="submit-btn" type="submit">Run</button>
                     <textarea class="code-editor" id="python-input" name="python_code" placeholder="Enter Python code here..."></textarea>
@@ -129,17 +129,6 @@
             .catch(error => console.error('Error loading keywords:', error));
     </script>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    <script>
-        const socket = io();
-
-        socket.on('connect', function() {
-            console.log('Connected to server');
-        });
-
-        socket.on('disconnect', function() {
-            console.log('Disconnected from server');
-            window.location.href = '/';
-        });
-    </script>
+    
 </body>
 </html>

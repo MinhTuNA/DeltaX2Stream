@@ -2,6 +2,8 @@ import socket
 import threading
 import os
 import subprocess
+import json
+import queue
 
 # Thiết lập socket server
 ServerIP = "192.168.1.101"
@@ -22,20 +24,23 @@ def handle_client(client_socket):
         while True:
             Data = client_socket.recv(bufferSize)
             Data_recv = Data.decode('utf-8')
-            if Data_recv:
-                print(Data_recv)
+            payload = json.loads(Data_recv)
+            user_name = payload.get('user')
+            python_code = payload.get('python_code')
+            if python_code:
+                print("đã nhận code của "+user_name )
                 filepath = os.path.join("/home/deltax/DeltaX2Stream", "script.py")
                 with open(filepath, "w") as file:
                     file.write(Data_recv)
-                try:
-                    result = subprocess.run(["python3", filepath], capture_output=True, text=True)
-                    print("Script Output:")
-                    print(result.stdout)
-                    if result.stderr:
-                        print("Script Error:")
-                        print(result.stderr)
-                except Exception as e:
-                    print(f"Error executing script: {e}")
+                # try:
+                #     result = subprocess.run(["python3", filepath], capture_output=True, text=True)
+                #     print("Script Output:")
+                #     print(result.stdout)
+                #     if result.stderr:
+                #         print("Script Error:")
+                #         print(result.stderr)
+                # except Exception as e:
+                #     print(f"Error executing script: {e}")
     finally:
         client_socket.close()  # Đảm bảo đóng kết nối client
 
