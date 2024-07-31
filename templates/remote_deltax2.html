@@ -21,21 +21,24 @@
                 <button class="exit-btn" onclick="window.location.href='/'">Exit</button>
             </div>
         </div>
-        <div class="video-container">
-            <iframe src="http://117.3.0.23:8033/?action=stream" allowfullscreen></iframe>
-            <iframe src="http://117.3.0.23:8032/?action=stream" allowfullscreen></iframe>
-        </div>
-        <div class="code-wrapper">
-            <div class="form-wrapper">
-                <div id="notification" class="notification"></div>
-                <div id="user_name" ><p>Chào, {{ user }}!, Code của <span id="execute-name">{{ ExecuteName }}</span> đang được thực thi, nếu không phải bạn vui lòng đợi! </p></div>
-                <form id="python-form">
-                    <button class="submit-btn" type="submit">Run</button>
-                    <textarea class="code-editor" id="python-input" name="python_code" placeholder="Enter Python code here..."></textarea>
-                </form>
+        <div class="main-content">
+            <div class="code-wrapper">
+                <div class="form-wrapper">
+                    <div id="notification" class="notification"></div>
+                    <div id="user_name"><p>Chào, {{ user }}!, Code của <span id="execute-name">{{ ExecuteName }}</span> đang được thực thi, nếu không phải bạn vui lòng đợi!</p></div>
+                    <form id="python-form">
+                        <button class="submit-btn" type="submit">Run</button>
+                        <textarea class="code-editor" id="python-input" name="python_code" placeholder="Enter Python code here..."></textarea>
+                    </form>
+                </div>
+            </div>
+            <div class="video-container">
+                <iframe class="iframe1" src="http://117.3.0.23:8033/?action=stream" allowfullscreen></iframe>
+                <iframe class="iframe2" src="http://117.3.0.23:8032/?action=stream" allowfullscreen></iframe>
             </div>
         </div>
     </div>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.js"></script>
@@ -54,8 +57,26 @@
                 mode: 'python',
                 lineNumbers: true,
                 theme: 'dracula',
-                extraKeys: { "Ctrl-Space": "autocomplete" }
+                extraKeys: { "Ctrl-Space": "autocomplete" },
+                viewportMargin: Infinity
             });
+            
+            const updateEditorSize = () => {
+            const container = document.querySelector('.code-wrapper');
+                if (container) {
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    editor.setSize(width, height);
+            }
+            };
+
+            // Cập nhật kích thước CodeMirror khi cửa sổ thay đổi kích thước
+            window.addEventListener('resize', updateEditorSize);
+
+            // Cập nhật kích thước khi DOM đã sẵn sàng
+            updateEditorSize();
+
+
 
             $("#python-form").on("submit", function(event){
                 event.preventDefault();
