@@ -15,6 +15,7 @@ SERVER_HOST = "192.168.1.101" # ip server
 SERVER_PORT = 5000 # port server
 bufferSize = 1024 # kích thước tối đa dữ liệu truyền nhận
 
+ExcuteName = None # tên người đang thực thi chương trình
 
 TCPClientSocket = socket.socket(family=socket.AF_INET, type = socket.SOCK_STREAM)
 TCPClientSocket.connect((SERVER_HOST,SERVER_PORT)) # kết nối tới server
@@ -33,6 +34,7 @@ def home():
 # route xử lý code python trên web
 @app.route("/remote", methods=["POST", "GET"])
 def remote():
+    global ExcuteName
     global lock_owner
     if "user" in session:
         name = session["user"]
@@ -44,7 +46,6 @@ def remote():
                     'user': name,
                     'python_code': python_code
                 }
-                print(payload)
                 json_payload = json.dumps(payload)
                 BytesToSend = json_payload.encode('utf8')  # Mã hóa dữ liệu thành dạng byte
                 TCPClientSocket.sendall(BytesToSend)  # Gửi dữ liệu tới server
@@ -58,26 +59,51 @@ def remote():
 # route xử lý file script tải lên        
 @app.route('/upload', methods=['POST']) 
 def upload():
-    file = request.files.get('file')
-    if file and file.filename.endswith('.py'):
-        filepath = os.path.join('/tmp', file.filename)
-        file.save(filepath)
-
-        with open(filepath, 'rb') as f:
-            while True:
-                chunk = f.read(bufferSize)
-                if not chunk:
-                    break
-                TCPClientSocket.sendall(chunk)
-    return render_template('remote_deltax2.html')
+    global lock_owner
+    if "user" in session:
+        name = session["user"]
+        file = request.files.get('file')
+        if file and file.filename.endswith('.py'):
+            filepath = os.path.join('/tmp', file.filename)
+            file.save(filepath)
+            with open(filepath, 'rb') as f:
+                while True:
+                    chunk = f.read(bufferSize)
+                    if not chunk:
+                        break
+                    payload = {
+                        'user': name,
+                        'python_code': chunk.decode("utf-8")
+                    }
+                    payload_json = json.dumps(payload)
+                    payload_bytes = payload_json.encode('utf-8')
+                    TCPClientSocket.sendall(payload_bytes)
+                    print("đã gửi code của "+name+" tới server")
+        return render_template("remote_deltax2.html",user = name)
 
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory(app.static_folder, filename)
 
+@app.route('/get_execute_name')
+def get_execute_name():
+    global ExcuteName
+    return jsonify({'ExecuteName': ExcuteName})
 
+def receive_messages():
+    global ExcuteName
+    while True:
+        try:
+            message = TCPClientSocket.recv(bufferSize)
+            if message:
+                ExcuteName = message.decode('utf-8')
+                print(f"Code của: {ExcuteName} đang được thực thi")
+        except:
+            break
 
 
 if __name__ == '__main__':
+    receive_thread = threading.Thread(target=receive_messages)
+    receive_thread.start()
     socketio.run(app, host='0.0.0.0', port=8264)

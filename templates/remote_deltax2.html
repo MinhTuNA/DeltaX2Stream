@@ -28,7 +28,7 @@
         <div class="code-wrapper">
             <div class="form-wrapper">
                 <div id="notification" class="notification"></div>
-                <div id="user_name" ><p>Chào, {{ user }}!</p></div>
+                <div id="user_name" ><p>Chào, {{ user }}!, Code của <span id="execute-name">{{ ExecuteName }}</span> đang được thực thi, nếu không phải bạn vui lòng đợi! </p></div>
                 <form id="python-form">
                     <button class="submit-btn" type="submit">Run</button>
                     <textarea class="code-editor" id="python-input" name="python_code" placeholder="Enter Python code here..."></textarea>
@@ -91,6 +91,23 @@
                     }
                 });
             });
+            function checkExecuteName() {
+            $.ajax({
+                url: "/get_execute_name",
+                method: "GET",
+                success: function(response) {
+                    var executeNameElement = document.getElementById('execute-name');
+                    if (executeNameElement) {
+                        executeNameElement.textContent = response.ExecuteName;
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Đã xảy ra lỗi khi lấy ExecuteName.");
+                }
+            });
+        }
+        // Kiểm tra ExecuteName mỗi 5 giây
+        setInterval(checkExecuteName, 1000);
         });
 
         fetch('/static/keywords.json')
