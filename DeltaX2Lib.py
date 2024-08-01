@@ -346,16 +346,6 @@ class Deltax2Cmd:
         command = GCodeCommand("M206", X=X, Y=Y, Z=Z)
         self.execute_command(command)
 
-    def SelectDevice(self, R):
-        """M331 chọn thiết bị được liên kết .
-        0 - không có, vô hiệu hóa cổng
-        1 - băng tải
-        2 - thanh trượt
-        """
-        if R not in [0, 1, 2]:
-            raise ValueError("Invalid device selection. Use 0, 1, or 2.")
-        command = GCodeCommand("M331", R=R)
-        self.execute_command(command)
 
     def SelectEffector(self, value):
         """M360 chọn bộ phận cuối cho robot .

@@ -17,7 +17,6 @@
                 "ResetSettings",
                 "RestoreSettings",
                 "SaveSettings",
-                "SelectDevice",
                 "SelectEffector",
                 "SetAbsolute",
                 "SetAcceleration",

@@ -31,6 +31,10 @@ def home():
             return redirect("/remote")
     return render_template("home.html")
 
+@app.route('/hdsd')
+def hdsd():
+    return render_template('hdsd.html')
+
 # route xử lý code python trên web
 @app.route("/remote", methods=["POST", "GET"])
 def remote():
