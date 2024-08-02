@@ -398,3 +398,126 @@ class Deltax2Cmd:
         """
         for cmd in self.command_history:
             print(cmd)
+
+class ConveyorCmd:
+    def __init__(self, port='/dev/ttyUSB0', baudrate=115200):
+        """
+        Khởi tạo đối tượng ConveyorCmd với cổng USB UART và tốc độ baud.
+        
+        :param port: Cổng UART USB (mặc định là /dev/ttyUSB0).
+        :param baudrate: Tốc độ baud (mặc định là 115200).
+        """
+        try:
+            self.ser = serial.Serial(
+                port=port, 
+                baudrate=baudrate,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=1
+            )
+        except serial.SerialException as e:
+            print(f"Error initializing serial port: {e}")
+            exit()
+
+        self.command_history = []
+
+    def send_command(self, command):
+        """
+        Gửi lệnh đến băng tải và lưu vào lịch sử lệnh.
+        
+        :param command: Chuỗi lệnh để gửi đến băng tải.
+        """
+        cmd = command + "\n"
+        self.ser.write(cmd.encode('utf-8'))
+        self.ser.flush()
+        print(f"Sent USB: {cmd.strip()}")
+        self.command_history.append(command)
+
+    def receive_response(self, timeout=20):
+        """
+        Nhận phản hồi từ băng tải.
+        
+        :param timeout: Thời gian chờ (giây) trước khi kết thúc việc nhận phản hồi.
+        :return: Chuỗi phản hồi từ băng tải.
+        """
+        start_time = time.time()
+        response = ""
+        while time.time() - start_time < timeout:
+            if self.ser.in_waiting > 0:
+                response = self.ser.readline().decode('utf-8').strip()
+                if response:
+                    print(f"Received: {response}")
+                    return response
+            time.sleep(0.1)
+        return response
+
+    def SetDefault(self):
+        """
+        Chế độ di chuyển mặc định của băng tải
+        """
+        command = "M310 0"
+        self.send_command(command)
+        self.receive_response()
+
+    def SetSpeed(self, speed):
+        """
+        Di chuyển băng tải với tốc độ chỉ định.
+        
+        :param speed: Tốc độ di chuyển -150 đến 150( nếu giá trị là âm thì quay ngược chiều).
+        """
+        if speed < -150:
+            speed = -150
+        if speed >150:
+            speed = 150
+        command = "M310 1"
+        self.send_command(command)
+        if not self.receive_response():
+            print("lỗi băng tải không phản hồi")
+            return
+        command = "M310 2"
+        self.send_command(command)
+        if not self.receive_response():
+            print("lỗi băng tải không phản hồi")
+        command = f"M311 {speed}"
+        self.send_command(command)
+        self.receive_response()
+
+    def SetPosition(self,speed,position):
+        """
+        Di chuyển băng tải tới ví trí với tốc độ chỉ định.
+        :param speed: tốc độ băng tải 0 đến 150
+        :param position: số bước động cơ quay, số âm quay ngược lại .
+        """
+        if speed < 0:
+            speed = 0
+        if speed >150:
+            speed = 150
+        command = "M310 1"
+        self.send_command(command)
+        if not self.receive_response():
+            print("lỗi băng tải không phản hồi")
+            return
+        command = f"M313 {speed}"
+        self.send_command(command)
+        if not self.receive_response():
+            print("lỗi băng tải không phản hồi")
+        command = f"M312 {position}"
+        self.send_command(command)
+        self.receive_response()
+
+
+    def stop(self):
+        """
+        Dừng băng tải.
+        """
+        command = "M310 1"
+        self.send_command(command)
+        self.receive_response()
+
+    def print_commands(self):
+        """
+        In tất cả các lệnh trong lịch sử lệnh.
+        """
+        for cmd in self.command_history:
+            print(cmd)
