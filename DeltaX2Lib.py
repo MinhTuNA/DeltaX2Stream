@@ -18,7 +18,7 @@ class GCodeCommand:
         :param S: Tham số S (thường dùng cho nhiệt độ hoặc đầu ra).
         :param A: Tham số A (dùng cho gia tốc trong lệnh M204).
         :param E: Tham số E (dùng cho thay đổi bộ phận hiệu ứng trong lệnh M360).
-        :param R: Tham số R (dùng cho chọn thiết bị liên kết với cổng uart bên ngoài M331).
+        :param R: Tham số R.
         :
         """
         # Kiểm tra loại lệnh có hợp lệ không
@@ -138,7 +138,7 @@ class Deltax2Cmd:
         # nếu là các lệnh di chuyển không cần đợi phản hồi từ DeltaX2
         if command.command_type in ["G01", "G02", "G03","G04", "G05", "G06"]: 
             self.command_history.append(str(command))
-            time.sleep(0.7) # đợi 1 lúc để deltaX2 thực hiện lệnh
+            time.sleep(1) # đợi 1 lúc để deltaX2 thực hiện lệnh
             return
         # đợi DeltaX2 phản hồi
         wait = 1
@@ -278,13 +278,6 @@ class Deltax2Cmd:
         Tắt đầu ra, laser, hoặc máy hút sử dụng M05.
         """
         command = GCodeCommand("M05")
-        self.execute_command(command)
-        
-    def OffSteppers(self):
-        """
-        Tắt động cơ bước sử dụng M84.
-        """
-        command = GCodeCommand("M84")
         self.execute_command(command)
 
     def SetTemp(self, temp):
